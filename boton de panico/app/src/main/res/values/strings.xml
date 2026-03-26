@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Botón de Pánico</string>
+    <string name="panic_button">Botón de Pánico</string>
+    <string name="emergency_contacts">Contactos de Emergencia</string>
+</resources>

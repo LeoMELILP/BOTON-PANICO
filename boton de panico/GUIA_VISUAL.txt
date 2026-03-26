@@ -1,0 +1,271 @@
+╔═══════════════════════════════════════════════════════════════════════════╗
+║                                                                           ║
+║              🚀 BOTÓN DE PÁNICO - GUÍA RÁPIDA DE INICIO                  ║
+║                                                                           ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+
+📁 UBICACIÓN DEL PROYECTO:
+   c:\Users\lcanett\Desktop\boton de panico
+
+═══════════════════════════════════════════════════════════════════════════
+
+✅ PASO 1: PROBAR LA APP EN TU DISPOSITIVO
+═══════════════════════════════════════════════════════════════════════════
+
+OPTION A: Con Android Studio (Más fácil)
+─────────────────────────────────────────
+
+1. Abre Android Studio
+2. File → Open
+3. Navega a: c:\Users\lcanett\Desktop\boton de panico
+4. Espera sincronización Gradle (1-2 minutos)
+5. Conecta tu teléfono por USB O abre un emulador:
+   - Tools → Device Manager → Create Device Virtual
+   - Selecciona "Pixel 6" con Android 13+
+6. Presiona el botón Run ▶ (esquina superior derecha)
+   OR presiona: Mayús + F10
+7. Selecciona tu dispositivo
+8. ¡Espera a que se instale!
+
+OPTION B: Con Terminal (Más rápido)
+────────────────────────────────────
+
+1. Abre PowerShell o CMD
+2. Ejecuta:
+   cd c:\Users\lcanett\Desktop\boton de panico
+   gradlew installDebug
+
+3. Espera a que complete
+4. ¡App se abrirá automáticamente!
+
+═══════════════════════════════════════════════════════════════════════════
+
+🧪 PASO 2: PROBAR LA FUNCIONALIDAD
+═══════════════════════════════════════════════════════════════════════════
+
+EN TU DISPOSITIVO:
+
+1️⃣  App abierta → Presiona "Permitir" para TODOS los permisos
+
+2️⃣  Presiona botón: "Configurar Contactos de Emergencia"
+
+3️⃣  Ingresa datos:
+    Nombre: "Mi celular" (o cualquier nombre)
+    Teléfono: +34612345678 (tu número real)
+
+4️⃣  Presiona: "Agregar Contacto"
+
+5️⃣  Vuelve a la pantalla principal (botón atrás)
+
+6️⃣  PRESIONA el botón ROJO GRANDE: "Botón de Pánico"
+
+7️⃣  ESPERA → Deberías recibir SMS con:
+    - 🚨 ¡ALERTA DE PÁNICO!
+    - Tu ubicación (Latitud/Longitud)
+    - Enlace a Google Maps
+
+✅ SI RECIBES EL SMS = Todo funciona correctamente
+
+═══════════════════════════════════════════════════════════════════════════
+
+📦 PASO 3: COMPILAR VERSIÓN PARA PUBLICAR
+═══════════════════════════════════════════════════════════════════════════
+
+Una vez probada, compilaremos la versión final.
+
+En Terminal (PowerShell o CMD):
+
+   cd c:\Users\lcanett\Desktop\boton de panico
+   gradlew assembleRelease
+
+Espera 2-5 minutos...
+
+Resultado: app\build\outputs\apk\release\app-release.apk
+
+═══════════════════════════════════════════════════════════════════════════
+
+🔐 PASO 4: CREAR CERTIFICADO DE FIRMA
+═══════════════════════════════════════════════════════════════════════════
+
+En PowerShell (como administrador):
+
+cd c:\Users\lcanett\Desktop\boton de panico
+
+keytool -genkey -v -keystore boton_panico.keystore `
+  -keyalg RSA -keysize 2048 -validity 10000 -alias panico_key
+
+Responde las preguntas:
+  ✓ Contraseña: [crea una contraseña fuerte - GUÁRDALA]
+  ✓ Nombre completo: [tu nombre]
+  ✓ Organización: [tu empresa o nombre]
+  ✓ Ciudad: [tu ciudad]
+  ✓ Provincia: [tu provincia]  
+  ✓ País: [ES, MX, AR, etc]
+  ✓ Yes para confirmar
+
+Resultado: boton_panico.keystore (GUARDAR EN LUGAR SEGURO)
+
+═══════════════════════════════════════════════════════════════════════════
+
+⚙️  PASO 5: CONFIGURAR build.gradle
+═══════════════════════════════════════════════════════════════════════════
+
+Abre: app/build.gradle
+
+Reemplaza esta parte:
+
+   buildTypes {
+       release {
+           minifyEnabled false
+           proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+       }
+   }
+
+Con esto:
+
+   signingConfigs {
+       release {
+           storeFile file('boton_panico.keystore')
+           storePassword '[TU_CONTRASEÑA]'
+           keyAlias 'panico_key'
+           keyPassword '[TU_CONTRASEÑA]'
+       }
+   }
+
+   buildTypes {
+       release {
+           signingConfig signingConfigs.release
+           minifyEnabled true
+           proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+       }
+   }
+
+Guarda el archivo.
+
+═══════════════════════════════════════════════════════════════════════════
+
+📱 PASO 6: CREAR CUENTA EN GOOGLE PLAY STORE
+═══════════════════════════════════════════════════════════════════════════
+
+1. Ve a: https://play.google.com/console
+
+2. Click en tu perfil (esquina superior derecha)
+   → "Crear cuenta de desarrollador"
+
+3. Completa tu perfil:
+   - Nombre del desarrollador
+   - Email
+   - Teléfono
+   - Acepta términos
+
+4. PAG $25 USD (pago único) ← Google requiere esto
+
+5. Espera confirmación (puede tardar hasta 48 horas)
+
+═══════════════════════════════════════════════════════════════════════════
+
+🚀 PASO 7: CREAR APP EN GOOGLE PLAY CONSOLE
+═══════════════════════════════════════════════════════════════════════════
+
+En Play Console:
+
+1. Click: "Crear aplicación"
+
+2. Nombre: "Botón de Pánico"
+
+3. Categoría: Herramientas o Seguridad
+
+4. Click: Crear
+
+5. Completa información (la app):
+   - Descripción corta
+   - Descripción larga
+   - Icono (512x512)
+   - Capturas de pantalla
+   - Política de privacidad
+
+═══════════════════════════════════════════════════════════════════════════
+
+📤 PASO 8: SUBIR APK A GOOGLE PLAY
+═══════════════════════════════════════════════════════════════════════════
+
+En Play Console:
+
+1. "Publicación" → "Tu aplicación en Google Play"
+
+2. Click: "Crear nuevo lanzamiento" → "Producción"
+
+3. Click: "Subir APK"
+
+4. Selecciona:
+   app\build\outputs\apk\release\app-release.apk
+
+5. Espera a que suba
+
+6. Presiona: "Revisar lanzamiento"
+
+7. Acepta términos
+
+8. Presiona: "Enviar a producción"
+
+═══════════════════════════════════════════════════════════════════════════
+
+⏳ GOOGLE REVISA: 24-48 HORAS
+═══════════════════════════════════════════════════════════════════════════
+
+Si aprueba (normalmente sí):
+  ✅ Tu app se publica automáticamente
+  ✅ Aparece en Google Play Store
+  ✅ Cualquiera puede descargarla
+
+Link para compartir:
+  https://play.google.com/store/apps/details?id=com.example.panicobutton
+
+═══════════════════════════════════════════════════════════════════════════
+
+📚 DOCUMENTACIÓN DISPONIBLE:
+═══════════════════════════════════════════════════════════════════════════
+
+Abre estos archivos en tu Editor:
+
+✓ PASO_A_PASO.md      ← MÁS DETALLES (Este archivo)
+✓ QUICKSTART.md       ← Guía rápida general
+✓ CONFIGURATION.md    ← Cómo usar la app
+✓ README.md           ← Información general
+
+═══════════════════════════════════════════════════════════════════════════
+
+🆘 PROBLEMAS COMUNES:
+═══════════════════════════════════════════════════════════════════════════
+
+❌ "Device not found"
+   → Conecta receptor USB en el teléfono
+   → Habilita "Depuración USB" en Configuración
+   → Intenta: adb devices
+
+❌ "Gradle build failed"
+   → Ejecuta: gradlew clean
+   → Luego: gradlew installDebug
+
+❌ "No recibo SMS"
+   → Verifica que tengas plan SMS activo
+   → Comprueba número de teléfono (+34...)
+   → Ver en LogCat si hay error
+
+❌ "Play Store rechaza la app"
+   → Revisa: Google Play Policy Hub
+   → Más común: política de privacidad faltante
+   → O permisos no documentados
+
+═══════════════════════════════════════════════════════════════════════════
+
+¡LISTO! 🎉
+
+Siguiendo estos pasos, tu app estará en Google Play Store
+y cualquiera podrá descargarla.
+
+═══════════════════════════════════════════════════════════════════════════
+
+Fecha: 26 de Marzo 2026
+Estado: Beta Funcional
+Version: 1.0
