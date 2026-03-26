@@ -1,0 +1,40 @@
+name: Compilar APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Configurar Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+    
+    - name: Configurar Android SDK
+      uses: android-actions/setup-android@v2
+    
+    - name: Dar permisos a Gradle
+      run: chmod +x gradlew
+    
+    - name: Compilar APK Debug
+      run: ./gradlew assembleDebug
+    
+    - name: Subir APK como artefacto
+      uses: actions/upload-artifact@v3
+      with:
+        name: APK-Debug
+        path: app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
+    
+    - name: Mostrar tamaño del APK
+      run: |
+        ls -lh app/build/outputs/apk/debug/app-debug.apk || echo "APK no encontrado"

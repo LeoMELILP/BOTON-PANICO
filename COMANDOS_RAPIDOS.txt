@@ -1,0 +1,234 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║    BOTÓN DE PÁNICO - COMANDOS LISTOS PARA COPIAR Y PEGAR                ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+⚠️  IMPORTANTE: Ejecuta estos comandos EN ORDEN y espera a que cada uno termine.
+
+════════════════════════════════════════════════════════════════════════════
+
+🧪 COMANDO 1: PROBAR EN DISPOSITIVO (Instalar Debug)
+════════════════════════════════════════════════════════════════════════════
+
+Abre: PowerShell o CMD
+Copia y pega esto:
+
+cd c:\Users\lcanett\Desktop\boton de panico
+gradlew installDebug
+
+Espera a que complete. La app se abrirá automáticamente en tu dispositivo.
+
+════════════════════════════════════════════════════════════════════════════
+
+📦 COMANDO 2: COMPILAR VERSIÓN RELEASE (Para publicar)
+════════════════════════════════════════════════════════════════════════════
+
+En la misma terminal, ejecuta:
+
+gradlew assembleRelease
+
+Espera 2-5 minutos. 
+
+Resultado: app\build\outputs\apk\release\app-release.apk
+
+════════════════════════════════════════════════════════════════════════════
+
+🔐 COMANDO 3: CREAR CERTIFICADO DE FIRMA (Solo primera vez)
+════════════════════════════════════════════════════════════════════════════
+
+Abre: PowerShell COMO ADMINISTRADOR
+Navega a tu carpeta:
+
+cd c:\Users\lcanett\Desktop\boton de panico
+
+Copia y pega (TODO DE UNA VEZ):
+
+keytool -genkey -v -keystore boton_panico.keystore -keyalg RSA -keysize 2048 -validity 10000 -alias panico_key
+
+Te pedirá:
+  → Contraseña: [escribe algo como: MiContraseña123!]
+  → Nombre completo: [tu nombre]
+  → Nombre unidad: [dejar en blanco, presionar ENTER]
+  → Organización: [tu empresa o nombre]
+  → Ciudad: [tu ciudad]
+  → Provincia: [tu provincia]
+  → País: [ES, MX, AR, etc]
+  → ¿Es correcto? [escribe: yes]
+  → Contraseña para clave: [MISMA CONTRASEÑA que arriba]
+
+Resultado: boton_panico.keystore creado ✅
+
+════════════════════════════════════════════════════════════════════════════
+
+⚙️  COMANDO 4: ACTUALIZAR build.gradle
+════════════════════════════════════════════════════════════════════════════
+
+Abre este archivo: app/build.gradle
+
+Busca la sección "buildTypes" y reemplázala:
+
+ANTES (busca esto):
+─────────────────
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+
+DESPUÉS (reemplaza con esto):
+──────────────────────────────
+
+    signingConfigs {
+        release {
+            storeFile file('boton_panico.keystore')
+            storePassword 'MiContraseña123!'
+            keyAlias 'panico_key'
+            keyPassword 'MiContraseña123!'
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+⚠️  Cambia 'MiContraseña123!' por la contraseña que escribiste en el paso 3
+
+════════════════════════════════════════════════════════════════════════════
+
+🚀 COMANDO 5: COMPILAR APK FIRMADO (Para Google Play)
+════════════════════════════════════════════════════════════════════════════
+
+En terminal:
+
+gradlew clean
+gradlew assembleRelease
+
+Espera 2-5 minutos.
+
+Resultado: app\build\outputs\apk\release\app-release.apk (FIRMADO AHORA)
+
+════════════════════════════════════════════════════════════════════════════
+
+📱 COMANDO 6 (Manual en Play Store)
+════════════════════════════════════════════════════════════════════════════
+
+NO HAY COMANDO, pero estos son los pasos:
+
+1. Ve a: https://play.google.com/console
+
+2. Crea cuenta ($25 USD)
+
+3. Click: Crear aplicación
+
+4. Rellena:
+   - Nombre: Botón de Pánico
+   - Descripción: Comparte ubicación en emergencias
+   - Categoría: Herramientas
+
+5. En "Publicación" → "Tu aplicación" → Click "Crear lanzamiento"
+
+6. Click: Subir APK
+
+7. Selecciona: app\build\outputs\apk\release\app-release.apk
+
+8. Rellena información faltante
+
+9. Click: "Enviar a producción"
+
+10. Google revisa (24-48 horas)
+
+11. ¡Publicado automáticamente! 🎉
+
+════════════════════════════════════════════════════════════════════════════
+
+📋 RESUMEN DE ARCHIVOS GENERADOS:
+════════════════════════════════════════════════════════════════════════════
+
+Después de ejecutar todo:
+
+✅ boton_panico.keystore
+   → Tu certificado de firma (GUARDAR EN LUGAR SEGURO)
+   → Se usa para firmar todas las actualizaciones
+
+✅ app/build/outputs/apk/debug/app-debug.apk
+   → App de prueba (versión debug)
+   → Solo para probar, no para publicar
+
+✅ app/build/outputs/apk/release/app-release.apk
+   → APP FINAL FIRMADA
+   → La que subes a Google Play Store
+   → ESTA es la que publica
+
+════════════════════════════════════════════════════════════════════════════
+
+🆘 SI ALGO SALE MAL:
+════════════════════════════════════════════════════════════════════════════
+
+Limpiar y reintentar:
+
+gradlew clean
+gradlew build -x test
+
+O ver qué está pasando:
+
+gradlew build --info
+
+O en Android Studio:
+Build → Clean Project
+Build → Rebuild Project
+
+════════════════════════════════════════════════════════════════════════════
+
+✅ VERIFICACIÓN FINAL:
+════════════════════════════════════════════════════════════════════════════
+
+Antes de publicar asegúrate:
+
+□ App probada en dispositivo
+□ Botón de pánico funciona
+□ SMS se reciben
+□ Ubicación correcta
+□ Keystore guardado
+□ build.gradle actualizado
+□ APK release compilado
+□ Cuenta Google Play creada ($25 pagada)
+□ Información de app completada
+□ Política de privacidad agregada
+□ APK subido en Play Console
+
+════════════════════════════════════════════════════════════════════════════
+
+📲 RESULTADO FINAL:
+════════════════════════════════════════════════════════════════════════════
+
+Después de publicar, tu link será:
+
+https://play.google.com/store/apps/details?id=com.example.panicobutton
+
+Comparte este link con cualquiera para que descargar tu app:
+→ Amigos
+→ Familia  
+→ Redes sociales
+→ Grupos de mensajería
+
+════════════════════════════════════════════════════════════════════════════
+
+¡LISTO! 🎉
+
+Siguiendo esta guía, publicarás tu app exitosamente.
+
+Cualquier duda: Revisa PASO_A_PASO.md con más detalles.
+
+════════════════════════════════════════════════════════════════════════════
+
+Fecha: 26 de Marzo 2026
+Versión: 1.0 Beta
+Status: Ready to Deploy
