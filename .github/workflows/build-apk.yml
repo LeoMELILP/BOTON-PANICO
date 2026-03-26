@@ -18,23 +18,28 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
     
-    - name: Instalar Gradle
-      uses: gradle/gradle-build-action@v2
-      with:
-        gradle-version: '8.0'
+    - name: Configurar Android SDK
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y android-sdk
     
-    - name: Compilar APK Debug
-      run: gradle assembleDebug
+    - name: Compilar APK Debug con Gradle Wrapper
+      run: |
+        chmod +x ./gradlew
+        ./gradlew --version
+        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tee build.log
     
     - name: Subir APK como artefacto
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: APK-Debug
         path: app/build/outputs/apk/debug/app-debug.apk
-        retention-days: 30
     
-    - name: Mostrar tamaño del APK
-      run: |
-        ls -lh app/build/outputs/apk/debug/app-debug.apk || echo "APK no encontrado"
+    - name: Subir logs de compilación
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs
+        path: build.log
