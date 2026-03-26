@@ -20,11 +20,13 @@ jobs:
         distribution: 'temurin'
         cache: gradle
     
-    - name: Dar permisos a Gradle
-      run: chmod +x gradlew
+    - name: Instalar Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: '8.0'
     
     - name: Compilar APK Debug
-      run: ./gradlew assembleDebug --no-daemon
+      run: gradle assembleDebug
     
     - name: Subir APK como artefacto
       uses: actions/upload-artifact@v4
