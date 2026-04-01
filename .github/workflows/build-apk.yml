@@ -23,7 +23,7 @@ jobs:
       run: |
         java -version
         gradle --version
-        gradle assembleDebug
+        gradle assembleDebug --warning-mode all
     
     - name: Subir APK como artefacto
       if: success()
