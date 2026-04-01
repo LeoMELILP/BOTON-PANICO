@@ -17,6 +17,15 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
+    signingConfigs {
+        release {
+            storeFile file('keystore.jks')
+            storePassword 'panico123'
+            keyAlias 'panico_key'
+            keyPassword 'panico123'
+        }
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
@@ -24,8 +33,9 @@ android {
             applicationIdSuffix ".debug"
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
     
