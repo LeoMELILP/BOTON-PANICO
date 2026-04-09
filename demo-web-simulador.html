@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Aplicación de pánico para compartir ubicación con contactos de emergencia">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Botón Pánico">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23667eea' width='180' height='180'/><text x='90' y='110' font-size='90' fill='white' text-anchor='middle' dominant-baseline='central'>🚨</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <title>🚨 Botón de Pánico - Demo Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        /* Notification */
+        .notification {
+            background: #FFF3CD;
+            border-left: 4px solid #FFC107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .notification.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification h3 {
+            color: #856404;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .notification p {
+            color: #856404;
+            font-size: 14px;
+            margin: 4px 0;
+        }
+
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+
+        /* Panic Button */
+        .button-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .panic-button {
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            border: none;
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255,68,68,0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .panic-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(255,68,68,0.6);
+        }
+
+        .panic-button:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .panic-button:disabled {
+            background: linear-gradient(135deg, #cccccc 0%, #999999 100%);
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .button-label {
+            font-size: 14px;
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            min-height: 40px;
+        }
+
+        /* Contacts Section */
+        .section {
+            margin: 30px 0;
+        }
+
+        .section h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .contact-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .contact-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .contact-input input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .contact-input button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .contact-input button:hover {
+            background: #5568d3;
+        }
+
+        .contacts-list {
+            list-style: none;
+        }
+
+        .contact-item {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .contact-item span {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .contact-item button {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .contact-item button:hover {
+            background: #d32f2f;
+        }
+
+        /* SMS Log */
+        .sms-log {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .sms-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .sms-time {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .sms-to {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .sms-content {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #555;
+            font-family: monospace;
+            word-break: break-word;
+        }
+
+        /* Location Info */
+        .location-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .location-info.active {
+            display: block;
+        }
+
+        .location-info h3 {
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .location-info p {
+            color: #0d47a1;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .location-map {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .location-map a {
+            color: #2196F3;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Status */
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .status.inactive {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status.active {
+            background: #ffebee;
+            color: #c62828;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        #installBtn {
+            display: none;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+
+        #installBtn:hover {
+            background: #45a049;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .panic-button {
+                width: 200px;
+                height: 200px;
+                font-size: 36px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-actions">
+                <div>
+                    <h1>🚨 Botón de Pánico</h1>
+                    <p>Simulador Web - Demostración Interactiva</p>
+                </div>
+                <button id="installBtn" onclick="installApp()">📱 Instalar</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Status -->
+            <div class="status inactive" id="status">
+                ✅ Sistema Inactivo
+            </div>
+
+            <!-- Active Notification -->
+            <div class="notification" id="notification">
+                <h3>⚠️ COMPARTIENDO UBICACIÓN</h3>
+                <p>La ubicación se está compartiendo con tus contactos de emergencia.</p>
+                <p class="timer">Tiempo restante: <span id="timer">8:00:00</span></p>
+            </div>
+
+            <!-- Location Info -->
+            <div class="location-info" id="locationInfo">
+                <h3>📍 Ubicación Actual</h3>
+                <p><strong>Latitud:</strong> <span id="latitude">-</span></p>
+                <p><strong>Longitud:</strong> <span id="longitude">-</span></p>
+                <p><strong>Precisión:</strong> <span id="accuracy">-</span> metros</p>
+                <div class="location-map">
+                    <a href="#" id="mapsLink" target="_blank">📌 Ver en Google Maps</a>
+                </div>
+            </div>
+
+            <!-- Panic Button -->
+            <div class="button-container">
+                <button class="panic-button" id="panicButton">🚨</button>
+                <div class="button-label" id="buttonLabel">Presiona para activar</div>
+            </div>
+
+            <!-- Contacts Section -->
+            <div class="section">
+                <h2>👥 Contactos de Emergencia</h2>
+                <div class="contact-input">
+                    <input type="tel" id="contactNumber" placeholder="Número de teléfono" maxlength="20">
+                    <button onclick="addContact()">Agregar</button>
+                </div>
+                <ul class="contacts-list" id="contactsList">
+                    <li class="empty-state">No hay contactos agregados</li>
+                </ul>
+            </div>
+
+            <!-- SMS Log -->
+            <div class="section">
+                <h2>💬 Historial de SMS</h2>
+                <div class="sms-log" id="smsLog">
+                    <div class="empty-state">Los SMS apareceran aquí cuando se envíen</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let isActive = false;
+        let contacts = [];
+        let smsLog = [];
+        let startTime = null;
+        let intervalId = null;
+        let smsIntervalId = null;
+        let currentLocation = null;
+
+        // Simulated locations (random)
+        function generateRandomLocation() {
+            const baseLatitude = -34.6037;  // Buenos Aires
+            const baseLongitude = -58.3816;
+            const latOffset = (Math.random() - 0.5) * 0.01;
+            const lonOffset = (Math.random() - 0.5) * 0.01;
+
+            return {
+                latitude: baseLatitude + latOffset,
+                longitude: baseLongitude + lonOffset,
+                accuracy: Math.floor(Math.random() * 10) + 5
+            };
+        }
+
+        // Initialize
+        document.getElementById('panicButton').addEventListener('click', togglePanic);
+        document.getElementById('contactNumber').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') addContact();
+        });
+
+        function togglePanic() {
+            if (isActive) {
+                deactivatePanic();
+            } else {
+                activatePanic();
+            }
+        }
+
+        function activatePanic() {
+            if (contacts.length === 0) {
+                alert('⚠️ Por favor, agrega al menos un contacto de emergencia');
+                return;
+            }
+
+            isActive = true;
+            startTime = Date.now();
+
+            // Update UI
+            document.getElementById('panicButton').disabled = true;
+            document.getElementById('buttonLabel').textContent = 'Panic activo - Se reactivará en 8 horas';
+            document.getElementById('status').className = 'status active';
+            document.getElementById('status').innerHTML = '🔴 SISTEMA ACTIVO - Compartiendo ubicación';
+            document.getElementById('notification').classList.add('active');
+
+            // Get location
+            getLocation();
+
+            // Update timer
+            intervalId = setInterval(updateTimer, 1000);
+
+            // Send SMS every 5 seconds
+            smsIntervalId = setInterval(sendSMS, 5000);
+
+            // Capture location every 5 seconds
+            setInterval(getLocation, 5000);
+
+            // Send initial SMS
+            sendSMS();
+        }
+
+        function deactivatePanic() {
+            isActive = false;
+            document.getElementById('panicButton').disabled = false;
+            document.getElementById('buttonLabel').textContent = 'Presiona para activar';
+            document.getElementById('status').className = 'status inactive';
+            document.getElementById('status').innerHTML = '✅ Sistema Inactivo';
+            document.getElementById('notification').classList.remove('active');
+            document.getElementById('locationInfo').classList.remove('active');
+
+            clearInterval(intervalId);
+            clearInterval(smsIntervalId);
+        }
+
+        function getLocation() {
+            // Simulate GPS location
+            currentLocation = generateRandomLocation();
+            document.getElementById('latitude').textContent = currentLocation.latitude.toFixed(6);
+            document.getElementById('longitude').textContent = currentLocation.longitude.toFixed(6);
+            document.getElementById('accuracy').textContent = currentLocation.accuracy;
+            document.getElementById('locationInfo').classList.add('active');
+
+            const mapsUrl = `https://www.google.com/maps/search/${currentLocation.latitude},${currentLocation.longitude}`;
+            document.getElementById('mapsLink').href = mapsUrl;
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const remaining = Math.max(0, 8 * 3600 - elapsed);
+
+            const hours = Math.floor(remaining / 3600);
+            const minutes = Math.floor((remaining % 3600) / 60);
+            const seconds = remaining % 60;
+
+            const timerText = 
+                String(hours).padStart(2, '0') + ':' +
+                String(minutes).padStart(2, '0') + ':' +
+                String(seconds).padStart(2, '0');
+
+            document.getElementById('timer').textContent = timerText;
+
+            if (remaining === 0) {
+                deactivatePanic();
+                alert('✅ Se completaron las 8 horas. El botón se ha reactivado.');
+            }
+        }
+
+        function sendSMS() {
+            if (!isActive || !currentLocation) return;
+
+            const now = new Date();
+            const time = now.toLocaleTimeString('es-AR');
+            
+            const mapsUrl = `https://maps.google.com/?q=${currentLocation.latitude},${currentLocation.longitude}`;
+            const message = `🚨 ALERTA DE PÁNICO\n\n📍 Ubicación: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}\n\n🗺️ ${mapsUrl}`;
+
+            contacts.forEach(contact => {
+                const smsItem = {
+                    time: time,
+                    to: contact,
+                    message: message
+                };
+                smsLog.unshift(smsItem);
+            });
+
+            // Keep only last 50 SMS
+            if (smsLog.length > 50) {
+                smsLog = smsLog.slice(0, 50);
+            }
+
+            renderSMSLog();
+        }
+
+        function addContact() {
+            const input = document.getElementById('contactNumber');
+            const number = input.value.trim();
+
+            if (!number) {
+                alert('Por favor ingresa un número de teléfono');
+                return;
+            }
+
+            if (contacts.includes(number)) {
+                alert('Este contacto ya fue agregado');
+                return;
+            }
+
+            contacts.push(number);
+            input.value = '';
+            renderContacts();
+        }
+
+        function removeContact(number) {
+            contacts = contacts.filter(c => c !== number);
+            renderContacts();
+        }
+
+        function renderContacts() {
+            const list = document.getElementById('contactsList');
+            
+            if (contacts.length === 0) {
+                list.innerHTML = '<li class="empty-state">No hay contactos agregados</li>';
+                return;
+            }
+
+            list.innerHTML = contacts.map(contact => `
+                <li class="contact-item">
+                    <span>📱 ${contact}</span>
+                    <button onclick="removeContact('${contact}')">Eliminar</button>
+                </li>
+            `).join('');
+        }
+
+        function renderSMSLog() {
+            const log = document.getElementById('smsLog');
+
+            if (smsLog.length === 0) {
+                log.innerHTML = '<div class="empty-state">Los SMS aparecerán aquí cuando se envíen</div>';
+                return;
+            }
+
+            log.innerHTML = smsLog.map(sms => `
+                <div class="sms-item">
+                    <div class="sms-time">⏰ ${sms.time}</div>
+                    <div class="sms-to">📱 Para: ${sms.to}</div>
+                    <div class="sms-content">${sms.message.replace(/\n/g, '<br>')}</div>
+                </div>
+            `).join('');
+        }
+
+        // Focus on input on load
+        document.getElementById('contactNumber').focus();
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(registration => {
+                    console.log('✅ Service Worker registrado correctamente');
+                })
+                .catch(error => {
+                    console.log('❌ Error al registrar Service Worker:', error);
+                });
+        }
+
+        // Install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Mostrar botón de instalación
+            const installBtn = document.getElementById('installBtn');
+            if (installBtn) {
+                installBtn.style.display = 'block';
+            }
+        });
+
+        function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('✅ App instalada');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+    </script>
+</body>
+</html>
